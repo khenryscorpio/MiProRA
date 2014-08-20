@@ -41,7 +41,7 @@ String camPara = "camera_para.dat";
 // the full path to the .patt pattern files
 
 //Patrones
-String proyectPath = sketchPath("/home/henry/sketchbook/proyectos/AlbumGolesEC/");
+String proyectPath = sketchPath("/home/fzzio/sketchbook/proyectos/MiProRA/");
 String patronesPath = proyectPath + "data/patts";
 String imagenesPath = proyectPath + "data/img";
 String videosPath = proyectPath + "data/video";
