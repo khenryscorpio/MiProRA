@@ -56,13 +56,11 @@ int numPixels;
 GSCapture videoC; // para linux
 PImage video; // en esta variable mostramos el video invertido
 
-int numColores = 5;
-int numBalones = 12;
-int numJugadores = 8;
-int numCamisetas = 32;
-int numBarras = 29;
-int numVideos = 4;
-int numObetos3D = 1;
+int numMarkers = 6;
+int numColores = 6;
+int numFondos = 6;
+int numObjetos = 6;
+int numVideos = 2;
 
 color trackColorA;
 float aTrackR, aTrackG, aTrackB;
@@ -82,13 +80,9 @@ float displayScale;
 color[] colors = new color[numColores];
 float[] scaler = new float[numColores];
 
-PImage[] imgBalones = new PImage[numBalones];
-PImage[] imgJugadores = new PImage[numJugadores];
-PImage[] imgCamisetas = new PImage[numCamisetas];
-PImage[] imgBarras = new PImage[numBarras];
+PImage[] imgFondos = new PImage[numFondos];
+PImage[] imgObjetos = new PImage[numObjetos];
 Movie[] videosArr = new Movie[numVideos];
-Movie videosMascotas;
-PShape[] objetos3DArr = new PShape[numObetos3D];
 
 
 float mS = 0.2;
@@ -98,7 +92,7 @@ void setup() {
   ///imgFondo = loadImage("fondos/fondo-3.jpg");
   ///imgFondoError = loadImage("fondos/fondo-1.jpg");
   //Imagenes
-imgFondo = loadImage("img/fondo.png");
+  //imgFondo = loadImage("img/fondo.png");
   
   // configuracion de la camara  
   size(winWidth, winHeight, P3D);
@@ -120,7 +114,7 @@ imgFondo = loadImage("img/fondo.png");
   cargarColores();
   cargarPatrones();
   cargarImagenes();
-  cargarVideos();
+  //cargarVideos();
   
   
   // to correct for the scale difference between the AR detection coordinates and the size at which the result is displayed
@@ -201,34 +195,15 @@ void draw()
     videoC.loadPixels();
     video = mirrorImage(videoC);
     
-    /********CHROMA KEY********/
-    //background(0xffff0000);
-    background(imgFondo);
-    loadPixels();    
-    videoC.loadPixels(); // Make the pixels of video available    
-
-    for (int i = 0; i < numPixels; i++) { // For each pixel in the video frame...
-      // Fetch the current color in that location
-      color currColor = videoC.pixels[i];
-      int currR = (currColor >> 16) & 0xFF;
-      int currG = (currColor >> 8) & 0xFF;
-      int currB = currColor & 0xFF;
-
-      // Compute the difference of the red, green, and blue values
-      int diffR = abs(currR - keyR);
-      int diffG = abs(currG - keyG);
-      int diffB = abs(currB - keyB);
-
-      // Render the pixels wich are not the close to the keyColor to the screen
-
-      if((diffR + diffG + diffB)> thresh){
-        pixels[i] = videoC.pixels[i];      
-      } 
-    }
+    //PImage nueva = mergeImagenesInColor2(video, color(169, 209, 132 ), 10); //Cambia tolerancia al croma
+    PImage nueva = mergeImagenesInColor2(video, color(0, 255, 0 ), 200); //Cambia tolerancia al croma
+    
+    
+    
     
     hint(DISABLE_DEPTH_TEST); // variables de Nayrtoolkit
       //image(video, (winWidth - capWidth)/2 , (winHeight - capHeight)/2  );
-      image(video, 0, 0, winWidth, winHeight);
+      image(nueva, 0, 0, winWidth, winHeight);
     hint(ENABLE_DEPTH_TEST);
     
     PImage cSmall = video.get();
@@ -238,23 +213,49 @@ void draw()
     //drawMarkers(); // draw the coordinates of the detected markers (2D)
     //drawBoxes();
     
-    dibujarElementos();
+    //dibujarElementos();
     
-    dibujarColoresDetectados();
+    //dibujarColoresDetectados();
     
     
   }
 }
+
+public PImage mergeImagenesInColor2(  PImage main, int color_cambiar, int tolerance) {
+  PImage merged = createImage(  main.width, main.height, ARGB );       
+  merged.loadPixels();
+  main.loadPixels();
+
+  for (  int i = 0 ; i < merged.pixels.length ; i++ ) {
+    float r =  red(   main.pixels[ i  ] ) ;
+    float g =  green( main.pixels[  i  ]  );
+    float b =  blue(  main.pixels[  i  ]);
+
+    float dr =  red(   color_cambiar ) ;
+    float dg =  green( color_cambiar  );
+    float db =  blue(  color_cambiar  );
+
+    float distancia = dist(r, g, b, dr, dg, db);
+    float distancia2 = dist(  r, g, b, 4, 255, 0  );
+
+    if ( distancia > tolerance ) {
+      merged.pixels[i] = main.pixels[i] ;
+    }
+  }
+  merged.updatePixels();
+  return merged ;
+}
+
 void mousePressed(){
-   keyPressed();
-   if(key == '1'){
+   //keyPressed();
+   //if(key == '1'){
      int loc = mouseX + mouseY*video.width;
       trackColorA = video.pixels[loc];
       aTrackR = red(trackColorA);
       aTrackG = green(trackColorA);
       aTrackB = blue(trackColorA);
       mensaje = "Calibrando color para Jugador A: [" + aTrackR + ", " + aTrackG + ", " + aTrackB + "].";
-   }
+   //}
 }
 void stop(){
   // Stop the GSVideo webcam capture
@@ -287,109 +288,28 @@ public void cargarPatrones(){
 
 
 public void cargarImagenes(){
-  // Cargamos las imagenes de los Balones
-  imgBalones[0] = loadImage(imagenesPath + "/balones/" + "1970-mexico.png");
-  imgBalones[1] = loadImage(imagenesPath + "/balones/" + "1974-westGermany.png");
-  imgBalones[2] = loadImage(imagenesPath + "/balones/" + "1978-argentina.png");
-  imgBalones[3] = loadImage(imagenesPath + "/balones/" + "1982-spain.png");
-  imgBalones[4] = loadImage(imagenesPath + "/balones/" + "1986-mexico.png");
-  imgBalones[5] = loadImage(imagenesPath + "/balones/" + "1990-italy.png");
-  imgBalones[6] = loadImage(imagenesPath + "/balones/" + "1994-usa.png");
-  imgBalones[7] = loadImage(imagenesPath + "/balones/" + "1998-france.png");
-  imgBalones[8] = loadImage(imagenesPath + "/balones/" + "2002-japan.png");
-  imgBalones[9] = loadImage(imagenesPath + "/balones/" + "2006-alemania.png");
-  imgBalones[10] = loadImage(imagenesPath + "/balones/" + "2010-southAfrica.png");
-  imgBalones[11] = loadImage(imagenesPath + "/balones/" + "2014-brazil.png");
-  
-  //Cargamos las imagenes de los jugadores
-  imgJugadores[0] = loadImage(imagenesPath + "/jugadores/" + "beckenbauer.jpg");
-  imgJugadores[1] = loadImage(imagenesPath + "/jugadores/" + "cruyff.jpg");
-  imgJugadores[2] = loadImage(imagenesPath + "/jugadores/" + "distefano.jpg");
-  imgJugadores[3] = loadImage(imagenesPath + "/jugadores/" + "eusebio.jpg");
-  imgJugadores[4] = loadImage(imagenesPath + "/jugadores/" + "maradona.jpg");
-  imgJugadores[5] = loadImage(imagenesPath + "/jugadores/" + "pele.jpg");
-  imgJugadores[6] = loadImage(imagenesPath + "/jugadores/" + "ronaldo.jpg");
-  imgJugadores[7] = loadImage(imagenesPath + "/jugadores/" + "zidane.jpg");
-  
-  //cargamos imagenes
-  imgCamisetas[0] = loadImage(imagenesPath + "/camisetas/" + "ALEMANIA.jpg");
-  imgCamisetas[1] = loadImage(imagenesPath + "/camisetas/" + "AUSTRALIA.jpg");
-  imgCamisetas[2] = loadImage(imagenesPath + "/camisetas/" + "BRASIL.jpg");
-  imgCamisetas[3] = loadImage(imagenesPath + "/camisetas/" + "COLOMBIA.jpg");
-  imgCamisetas[4] = loadImage(imagenesPath + "/camisetas/" + "COSTARICA.jpg");
-  imgCamisetas[5] = loadImage(imagenesPath + "/camisetas/" + "ESPANA.jpg");
-  imgCamisetas[6] = loadImage(imagenesPath + "/camisetas/" + "GHANA.jpg");
-  imgCamisetas[7] = loadImage(imagenesPath + "/camisetas/" + "HOLANDA.jpg");
-  imgCamisetas[8] = loadImage(imagenesPath + "/camisetas/" + "IRAN.jpg");
-  imgCamisetas[9] = loadImage(imagenesPath + "/camisetas/" + "MEXICO.jpg");
-  imgCamisetas[10] = loadImage(imagenesPath + "/camisetas/" + "RUSIA.jpg");
-  imgCamisetas[11] = loadImage(imagenesPath + "/camisetas/" + "ARGELIA.jpg");
-  imgCamisetas[12] = loadImage(imagenesPath + "/camisetas/" + "BELGICA.jpg");
-  imgCamisetas[13] = loadImage(imagenesPath + "/camisetas/" + "CAMERUN.jpg");
-  imgCamisetas[14] = loadImage(imagenesPath + "/camisetas/" + "COREA.jpg");
-  imgCamisetas[15] = loadImage(imagenesPath + "/camisetas/" + "CROACIA.jpg");
-  imgCamisetas[16] = loadImage(imagenesPath + "/camisetas/" + "ESTADOSUNIDOS.jpg");
-  imgCamisetas[17] = loadImage(imagenesPath + "/camisetas/" + "GHANA.jpg");
-  imgCamisetas[18] = loadImage(imagenesPath + "/camisetas/" + "HONDURAS.jpg");
-  imgCamisetas[19] = loadImage(imagenesPath + "/camisetas/" + "ITALIA.jpg");
-  imgCamisetas[20] = loadImage(imagenesPath + "/camisetas/" + "NIGERIA.jpg");
-  imgCamisetas[21] = loadImage(imagenesPath + "/camisetas/" + "SUIZA.jpg");
-  imgCamisetas[22] = loadImage(imagenesPath + "/camisetas/" + "ARGENTINA.jpg");
-  imgCamisetas[23] = loadImage(imagenesPath + "/camisetas/" + "bosnia.jpg");
-  imgCamisetas[24] = loadImage(imagenesPath + "/camisetas/" + "CHILE.jpg");
-  imgCamisetas[25] = loadImage(imagenesPath + "/camisetas/" + "COSTA-MARFIL-Copy.jpg");
-  imgCamisetas[26] = loadImage(imagenesPath + "/camisetas/" + "ecuador.jpg");
-  imgCamisetas[27] = loadImage(imagenesPath + "/camisetas/" + "FRANCIA.jpg");
-  imgCamisetas[28] = loadImage(imagenesPath + "/camisetas/" + "GRECIA.jpg");
-  imgCamisetas[29] = loadImage(imagenesPath + "/camisetas/" + "INGLATERRA.jpg");
-  imgCamisetas[30] = loadImage(imagenesPath + "/camisetas/" + "JAPON.jpg");
-  imgCamisetas[31] = loadImage(imagenesPath + "/camisetas/" + "PORTUGAL.jpg");
-  
-  imgBarras[0] = loadImage(imagenesPath + "/barras/" + "Ajax.jpg");
-  imgBarras[1] = loadImage(imagenesPath + "/barras/" + "AtlJuventus.jpg");
-  imgBarras[2] = loadImage(imagenesPath + "/barras/" + "BarcelonaSC.jpg");
-  imgBarras[3] = loadImage(imagenesPath + "/barras/" + "Borussia.jpg");
-  imgBarras[4] = loadImage(imagenesPath + "/barras/" + "Corinthians.jpg");
-  imgBarras[5] = loadImage(imagenesPath + "/barras/" + "Galatasaray.jpg");
-  imgBarras[6] = loadImage(imagenesPath + "/barras/" + "Inter.jpg");
-  imgBarras[7] = loadImage(imagenesPath + "/barras/" + "Lorenzo.jpg");
-  imgBarras[8] = loadImage(imagenesPath + "/barras/" + "Milan.jpg");
-  imgBarras[9] = loadImage(imagenesPath + "/barras/" + "Penarol.jpg");
-  imgBarras[10] = loadImage(imagenesPath + "/barras/" + "America.jpg");
-  imgBarras[11] = loadImage(imagenesPath + "/barras/" + "AtlMadrid.jpg");
-  imgBarras[12] = loadImage(imagenesPath + "/barras/" + "Bayern.jpg");
-  imgBarras[13] = loadImage(imagenesPath + "/barras/" + "Celtic.jpg");
-  imgBarras[14] = loadImage(imagenesPath + "/barras/" + "Cruz.jpg");
-  imgBarras[15] = loadImage(imagenesPath + "/barras/" + "Independiente.jpg");
-  imgBarras[16] = loadImage(imagenesPath + "/barras/" + "Juventus.jpg");
-  imgBarras[17] = loadImage(imagenesPath + "/barras/" + "Montevideo.jpg");
-  imgBarras[18] = loadImage(imagenesPath + "/barras/" + "Racing.jpg");
-  imgBarras[19] = loadImage(imagenesPath + "/barras/" + "Arsenal.jpg");
-  imgBarras[20] = loadImage(imagenesPath + "/barras/" + "Barcelona.jpg");
-  imgBarras[21] = loadImage(imagenesPath + "/barras/" + "Boca.jpg");
-  imgBarras[22] = loadImage(imagenesPath + "/barras/" + "Cerro.jpg");
-  imgBarras[23] = loadImage(imagenesPath + "/barras/" + "Flamengo.jpg");
-  imgBarras[24] = loadImage(imagenesPath + "/barras/" + "IndependientesantaFe.jpg");
-  imgBarras[25] = loadImage(imagenesPath + "/barras/" + "Liverpool.jpg");
-  imgBarras[26] = loadImage(imagenesPath + "/barras/" + "Manchester.jpg");
-  imgBarras[27] = loadImage(imagenesPath + "/barras/" + "Olimpia.jpg");
-  imgBarras[28] = loadImage(imagenesPath + "/barras/" + "river.jpg");
+
+  imgFondos[0] = loadImage(imagenesPath + "/fondos/" + "fondo_cocinamadera.jpg");
+  imgFondos[1] = loadImage(imagenesPath + "/fondos/" + "fondo_Carretera.jpg");
+  imgFondos[2] = loadImage(imagenesPath + "/fondos/" + "fondo_chimborazo.jpg");
+  imgFondos[3] = loadImage(imagenesPath + "/fondos/" + "luces_ok.jpg");
+  imgFondos[4] = loadImage(imagenesPath + "/fondos/" + "fondo_energia.png");
+  imgFondos[5] = loadImage(imagenesPath + "/fondos/" + "fondo_energia2.jpg");  
+
+  imgObjetos[0] = loadImage(imagenesPath + "/objetos/" + "banana.png");
+  imgObjetos[1] = loadImage(imagenesPath + "/objetos/" + "llantas_colores.png");
+  imgObjetos[2] = loadImage(imagenesPath + "/objetos/" + "poncho.png");
+  imgObjetos[3] = loadImage(imagenesPath + "/objetos/" + "optimus.png");
+  imgObjetos[4] = loadImage(imagenesPath + "/objetos/" + "sombrero.png");
+  imgObjetos[5] = loadImage(imagenesPath + "/objetos/" + "rosas.png");
 }
 
 public void cargarVideos(){
-  videosArr[0] = new Movie(this, videosPath + "/" + "balones.mp4");
-  videosArr[1] = new Movie(this, videosPath + "/" + "kaviedes.mp4");
-  videosArr[2] = new Movie(this, videosPath + "/" + "maradona-mano.mp4");
-  videosArr[3] = new Movie(this, videosPath + "/" + "primer-mundial.mp4");
-  
-  videosMascotas = new Movie(this, videosPath + "/" + "mascotas.mp4");
+  videosArr[0] = new Movie(this, videosPath + "/" + "carros_industria.mp4");
+  videosArr[1] = new Movie(this, videosPath + "/" + "engrane.mp4");
   
   videosArr[0].loop(); videosArr[0].pause(); videosArr[0].volume(0);
-  videosArr[1].loop(); videosArr[1].pause(); videosArr[1].volume(0);
-  videosArr[2].loop(); videosArr[2].pause(); videosArr[2].volume(0);
-  videosArr[3].loop(); videosArr[3].pause(); videosArr[3].volume(0);
-  videosMascotas.loop(); videosMascotas.pause(); videosMascotas.volume(0);
-  
+  videosArr[1].loop(); videosArr[1].pause(); videosArr[1].volume(0);  
 }
 
 PImage mirrorImage(PImage source){
@@ -431,116 +351,51 @@ PImage mirrorImage(PImage source){
   return response;
 }
 
-
 public void dibujarElementos(){
-  //nya.setARPerspective();
+  
+  nya.setARPerspective();
+  textAlign(CENTER, CENTER);
   //scale(displayScale);
-    
-  
-  if ((!nya.isExistMarker(0)) && (!nya.isExistMarker(1)) && (!nya.isExistMarker(2)) && (!nya.isExistMarker(3)) && (!nya.isExistMarker(4)) ){
-      println("no nada");
-      
-      //pausar videos
-      for(int i=0; i<numVideos; i++){
-          //videosArr[i].pause();
-        
-      }
-      
-      return;
-  }
-  
-  // Para la hoja A, Balones
-  if(nya.isExistMarker(0)){
-    //println("Balones"  + floor( minute()%numBalones ) );
-    int indiceImagen = floor( minute()%numBalones ) ;
-    int indiceColor = floor( minute()%numColores );
-    dibujarImagen(imgBalones[indiceImagen], 0 , indiceColor);
-  }
-  
-  
-  // Para la hoja B, Jugadores
-  if(nya.isExistMarker(1)){
-    //println("Jugadores");
-    int indiceImagen = floor( minute()%numJugadores ) ;
-    int indiceColor = floor( minute()%numColores );
-    dibujarImagen(imgJugadores[indiceImagen], 1 , indiceColor);
-  }
-  
-  // Para la hoja C, Jugadores
-  if(nya.isExistMarker(2)){
-    //println("camisetas");
-    int indiceImagen = floor( minute()%numCamisetas ) ;
-    int indiceColor = floor( minute()%numCamisetas );
-    dibujarImagen(imgCamisetas[indiceImagen], 2 , indiceColor);
-  }
-  
-  // Para la hoja C, Jugadores
-  if(nya.isExistMarker(3)){
-    //println("camisetas");
-    int indiceImagen = floor( minute()%numBarras ) ;
-    int indiceColor = floor( minute()%numBarras );
-    dibujarImagen(imgBarras[indiceImagen], 3 , indiceColor);
-  }
-  
-  
-  // Para la hoja C, Videos
-  int indiceVideo = floor( minute()%numVideos ) ;
-    int indiceColor = floor( minute()%numColores );
-  if(nya.isExistMarker(4)){
-    //println("Videos");
-    //println("Videos" + indiceVideo);
-    if (videosArr[indiceVideo].available() == true) {
-      videosArr[indiceVideo].play();
+  for (int i=0; i < numMarkers; i++ ) {
+    if ((!nya.isExistMarker(i))) {
+      continue;
     }
-     dibujarVideo(videosArr[indiceVideo], 4 , (floor( minute()%numColores )) );   
-  }else{   
-    //videosArr[indiceVideo].pause();
-  }
-  
-  /*// Para la hoja D, Jugadas
-  if(nya.isExistMarker(3)){
-    println("Jugadas");
-  }*/
-  
-  // Para la hoja E, Mascotas
-  if(nya.isExistMarker(5)){
-    println("Mascotas");
-   
-    if (videosMascotas.available() == true) {
-      videosMascotas.play();
-    }
-     dibujarVideo(videosMascotas, 5 , (floor( minute()%numColores )) );
-  }
-  
-  
-
-  perspective();
-}
-
-public void dibujarImagen(PImage imagen, int indiceMarker, int indiceColor){
+    //Dibuja el Fondo
     pushMatrix();
-      setMatrix(nya.getMarkerMatrix(indiceMarker));
+      background(imgFondos[i]);
+    popMatrix();
+    
+    //Dibuja el elemento
+    pushMatrix();
+      setMatrix(nya.getMarkerMatrix(i));
+
+      //Dibuja la caja
       pushMatrix();
         scale(1, 1, 0.10);
-        //scale(scaler[indiceColor]);
+        //scale(scaler[i]);
         translate(0, 0, 20);
         lights();
         stroke(0);
-        fill(colors[indiceColor]);
+        fill(colors[i]);
         box(80);
         noLights();
       popMatrix();
 
+      //Dibuja el objeto
       pushMatrix();
-        loadPixels();
+        loadPixels();        
           scale(1, -1);
           translate(0, 0, 10.1);
-
-          image(imagen, -140, -80, 200, 200);
-          
+          image(imgObjetos[i], -60, -60, 120, 120);
         updatePixels();
        popMatrix();
     popMatrix();
+
+
+  }
+  perspective();
+  
+  
 }
 
 public void dibujarVideo(Movie video, int indiceMarker, int indiceColor){

@@ -1,0 +1,14 @@
+.DS_Store
+applet
+application.linux
+application.linux32
+application.linux64
+application.windows
+application.windows32
+application.windows64
+application.macosx 
+*.zip
+otros
+data/video/*
+*.directory
+.directory
