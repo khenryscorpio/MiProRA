@@ -256,6 +256,11 @@ void mousePressed(){
       mensaje = "Calibrando color para Jugador A: [" + aTrackR + ", " + aTrackG + ", " + aTrackB + "].";
    }
 }
+public void keyPressed() {
+  switch (key) {
+    case 'p': saveFrame(); break;
+  }
+}
 void stop(){
   // Stop the GSVideo webcam capture
   videoC.stop();
