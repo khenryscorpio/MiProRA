@@ -33,6 +33,8 @@ PImage imgCaptada; //Imagen final
 PImage imgNueva;
 String mensaje = "";
 
+int indiceActual = -1;
+
 String nombreArchivo = "data/captura/captura_ar.jpg";
 
 // Make sure to change both the camPara and the patternPath String to where the files are on YOUR computer
@@ -55,6 +57,7 @@ int numPixels;
 //Capture videoC; // para windows
 GSCapture videoC; // para linux
 PImage video; // en esta variable mostramos el video invertido
+PImage nueva;
 
 int numMarkers = 6;
 int numColores = 6;
@@ -188,7 +191,12 @@ void draw()
 {
    // Cargamos datos de la camara
   if (videoC.available()) {
-    background(0);
+    if(indiceActual == -1){
+      background(0);
+    }else{
+      background(imgFondos[indiceActual]);
+    }
+    
     videoC.read();
     
     loadPixels();
@@ -196,7 +204,7 @@ void draw()
     video = mirrorImage(videoC);
     
     //PImage nueva = mergeImagenesInColor2(video, color(169, 209, 132 ), 10); //Cambia tolerancia al croma
-    PImage nueva = mergeImagenesInColor2(video, color(0, 255, 0 ), 200); //Cambia tolerancia al croma
+    nueva = mergeImagenesInColor2(video, color(0, 255, 0 ), 200); //Cambia tolerancia al croma
     
     
     
@@ -213,7 +221,7 @@ void draw()
     //drawMarkers(); // draw the coordinates of the detected markers (2D)
     //drawBoxes();
     
-    //dibujarElementos();
+     dibujarElementos();
     
     //dibujarColoresDetectados();
     
@@ -282,12 +290,22 @@ public void cargarColores(){
 
 
 public void cargarPatrones(){
-  nya.addARMarker(patronesPath + "/" + "ftt01-diez.pat", 80);
+  nya.addARMarker(patronesPath + "/" + "patt.kanji", 80);
+  nya.addARMarker(patronesPath + "/" + "patt.hiro", 80);
+  nya.addARMarker(patronesPath + "/" + "4x4_13.patt", 80);
+  nya.addARMarker(patronesPath + "/" + "4x4_23.patt", 80);
+  nya.addARMarker(patronesPath + "/" + "4x4_89.patt", 80); 
+  nya.addARMarker(patronesPath + "/" + "4x4_59.patt", 80);
+  
+  /*nya.addARMarker(patronesPath + "/" + "ftt01-diez.pat", 80);
   nya.addARMarker(patronesPath + "/" + "ftt01-gol.pat", 80);
   nya.addARMarker(patronesPath + "/" + "ftt01-flechas.pat", 80);
   nya.addARMarker(patronesPath + "/" + "ftt01-escuadra.pat", 80);
   nya.addARMarker(patronesPath + "/" + "ftt01-pinzas.pat", 80); 
-  nya.addARMarker(patronesPath + "/" + "ftt01-triangulos.pat", 80);
+  nya.addARMarker(patronesPath + "/" + "ftt01-triangulos.pat", 80);*/
+  
+  
+  
   //nya.addARMarker(patronesPath + "/" + "ftt01-cuadrados.pat", 80);
 }
 
@@ -363,18 +381,16 @@ public void dibujarElementos(){
   //scale(displayScale);
   for (int i=0; i < numMarkers; i++ ) {
     if ((!nya.isExistMarker(i))) {
+      indiceActual = -1;
       continue;
     }
-    //Dibuja el Fondo
-    pushMatrix();
-      background(imgFondos[i]);
-    popMatrix();
     
     //Dibuja el elemento
     pushMatrix();
       setMatrix(nya.getMarkerMatrix(i));
 
       //Dibuja la caja
+      /*
       pushMatrix();
         scale(1, 1, 0.10);
         //scale(scaler[i]);
@@ -385,21 +401,24 @@ public void dibujarElementos(){
         box(80);
         noLights();
       popMatrix();
+      */
 
       //Dibuja el objeto
       pushMatrix();
         loadPixels();        
           scale(1, -1);
           translate(0, 0, 10.1);
-          image(imgObjetos[i], -60, -60, 120, 120);
+          image(imgObjetos[i], -200, -200, 400, 400);
+          println("Imagen: [" + i + "]");
         updatePixels();
        popMatrix();
     popMatrix();
-
-
+    
+    //Dibuja el Fondo
+    indiceActual = i;
   }
-  perspective();
   
+  perspective();
   
 }
 
