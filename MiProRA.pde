@@ -259,7 +259,7 @@ void mousePressed(){
 }
 public void keyPressed() {
   switch (key) {
-    case 'p': saveFrame(); break;
+    case 'p': saveFrame("data/capturas/captura-######.png"); break;
   }
 }
 void stop(){
