@@ -22,7 +22,7 @@ int winWidth=1920, winHeight=1080; //Cambia Dimensiones de la ventana
 //int winWidth=1366, winHeight=768; //Cambia Dimensiones de la ventana
 
 // dimensiones de la camara
-int capWidth = 640, capHeight = 480;
+int capWidth = 1280, capHeight = 1024;
 // the dimensions at which the AR will take place.
 int arWidth = 640;
 int arHeight = 480; //480 360
@@ -31,9 +31,14 @@ PFont fuente;        //Tipo de fuente
 int fontSize = 160;
 PImage imgCaptada; //Imagen final
 PImage imgNueva;
+PImage imgLogoMipro;
 String mensaje = "";
 
-int indiceActual = -1;
+int indiceActual = 0;
+int calibR = 25;
+int calibG = 255;
+int calibB= 25;
+int calibC = 180;
 
 String nombreArchivo = "data/captura/captura_ar.jpg";
 
@@ -191,11 +196,11 @@ void draw()
 {
    // Cargamos datos de la camara
   if (videoC.available()) {
-    if(indiceActual == -1){
-      background(0);
-    }else{
+    //if(indiceActual == -1){
+      //background(0);
+    //}else{
       background(imgFondos[indiceActual]);
-    }
+    //}
     
     videoC.read();
     
@@ -204,7 +209,7 @@ void draw()
     video = mirrorImage(videoC);
     
     //PImage nueva = mergeImagenesInColor2(video, color(169, 209, 132 ), 10); //Cambia tolerancia al croma
-    nueva = mergeImagenesInColor2(video, color(0, 255, 0 ), 200); //Cambia tolerancia al croma
+    nueva = mergeImagenesInColor2(video, color(calibR, calibG, calibB ), calibC); //Cambia tolerancia al croma
     
     
     
@@ -213,6 +218,9 @@ void draw()
       //image(video, (winWidth - capWidth)/2 , (winHeight - capHeight)/2  );
       image(nueva, 0, 0, winWidth, winHeight);
     hint(ENABLE_DEPTH_TEST);
+    pushMatrix();
+      image(imgLogoMipro, 100, 50, 400, 134);
+    popMatrix();
     
     PImage cSmall = video.get();
     cSmall.resize(arWidth, arHeight);
@@ -257,17 +265,100 @@ public PImage mergeImagenesInColor2(  PImage main, int color_cambiar, int tolera
 void mousePressed(){
    //keyPressed();
    //if(key == '1'){
-     int loc = mouseX + mouseY*video.width;
-      trackColorA = video.pixels[loc];
-      aTrackR = red(trackColorA);
-      aTrackG = green(trackColorA);
-      aTrackB = blue(trackColorA);
-      mensaje = "Calibrando color para Jugador A: [" + aTrackR + ", " + aTrackG + ", " + aTrackB + "].";
+     //int loc = mouseX + mouseY*video.width;
+      //trackColorA = video.pixels[loc];
+      //aTrackR = red(trackColorA);
+      //aTrackG = green(trackColorA);
+      //aTrackB = blue(trackColorA);
+      //mensaje = "Calibrando color para Jugador A: [" + aTrackR + ", " + aTrackG + ", " + aTrackB + "].";
    //}
 }
+public void calibrarRA(){
+  if(calibR < 255){
+    calibR = calibR + 1;
+  }else{
+    calibR = 255;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarRB(){
+  if(calibR > 0){
+    calibR = calibR - 1;
+  }else{
+    calibR = 0;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarGA(){
+  if(calibG < 255){
+    calibG = calibG + 1;
+  }else{
+    calibG = 255;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarGB(){
+  if(calibG > 0){
+    calibG = calibG - 1;
+  }else{
+    calibG = 0;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarBA(){
+  if(calibB < 255){
+    calibB = calibB + 1;
+  }else{
+    calibB = 255;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarBB(){
+  if(calibB > 0){
+    calibB = calibB - 1;
+  }else{
+    calibG = 0;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarCA(){
+  if(calibC < 255){
+    calibC = calibC + 1;
+  }else{
+    calibC = 255;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+public void calibrarCB(){
+  if(calibC > 0){
+    calibC = calibC - 1;
+  }else{
+    calibC = 0;
+  }
+  println("RGB: " + calibR + ", " + calibG + ", " + calibB + " -- Tolerancia: " + calibC);
+}
+
 public void keyPressed() {
   switch (key) {
-    case 'p': saveFrame("data/capturas/captura-######.png"); break;
+    case 'z': saveFrame("data/capturas/captura-######.png");
+               println("capturado"); 
+              break;
+    case ('1'): calibrarRA();
+                break;
+    case ('q'): calibrarRB();
+                break;
+    case ('2'): calibrarGA();
+                break;
+    case ('w'): calibrarGB();
+                break;
+    case ('3'): calibrarBA();
+                break;
+    case ('e'): calibrarBB();
+                break;
+    case ('4'): calibrarCA();
+                break;
+    case ('r'): calibrarCB();
+                break;
   }
 }
 void stop(){
@@ -291,11 +382,11 @@ public void cargarColores(){
 
 public void cargarPatrones(){
   nya.addARMarker(patronesPath + "/" + "patt.kanji", 80);
-  nya.addARMarker(patronesPath + "/" + "patt.hiro", 80);
   nya.addARMarker(patronesPath + "/" + "4x4_13.patt", 80);
-  nya.addARMarker(patronesPath + "/" + "4x4_23.patt", 80);
-  nya.addARMarker(patronesPath + "/" + "4x4_89.patt", 80); 
+  nya.addARMarker(patronesPath + "/" + "patt.hiro", 80); //poncho
   nya.addARMarker(patronesPath + "/" + "4x4_59.patt", 80);
+  nya.addARMarker(patronesPath + "/" + "4x4_63.patt", 80); 
+  nya.addARMarker(patronesPath + "/" + "4x4_92.patt", 80);
   
   /*nya.addARMarker(patronesPath + "/" + "ftt01-diez.pat", 80);
   nya.addARMarker(patronesPath + "/" + "ftt01-gol.pat", 80);
@@ -312,6 +403,10 @@ public void cargarPatrones(){
 
 public void cargarImagenes(){
 
+    imgLogoMipro = loadImage(imagenesPath + "/" + "logo.png");
+  
+  
+  
   imgFondos[0] = loadImage(imagenesPath + "/fondos/" + "fondo_cocinamadera.jpg");
   imgFondos[1] = loadImage(imagenesPath + "/fondos/" + "fondo_Carretera.jpg");
   imgFondos[2] = loadImage(imagenesPath + "/fondos/" + "fondo_chimborazo.jpg");
@@ -381,7 +476,7 @@ public void dibujarElementos(){
   //scale(displayScale);
   for (int i=0; i < numMarkers; i++ ) {
     if ((!nya.isExistMarker(i))) {
-      indiceActual = -1;
+      //indiceActual = -1;
       continue;
     }
     
@@ -406,9 +501,9 @@ public void dibujarElementos(){
       //Dibuja el objeto
       pushMatrix();
         loadPixels();        
-          scale(1, -1);
+          scale(-1, -1);
           translate(0, 0, 10.1);
-          image(imgObjetos[i], -200, -200, 400, 400);
+          image(imgObjetos[i], -300, -300, 600, 600);
           println("Imagen: [" + i + "]");
         updatePixels();
        popMatrix();
